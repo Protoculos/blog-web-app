@@ -5,24 +5,30 @@ class BlogPost {
   final String title;
   final DateTime publishedDate;
   final String body;
+  final String? id;
 
   String get date => DateFormat('d MMMM y').format(publishedDate);
 
   BlogPost(
-      {required this.title, required this.publishedDate, required this.body});
+      {this.id,
+      required this.title,
+      required this.publishedDate,
+      required this.body});
 
-  factory BlogPost.fromDocument(DocumentSnapshot doc) {
+  factory BlogPost.fromDocument(DocumentSnapshot<Map<String, dynamic>> doc) {
     final map = doc.data();
-    if (map == null) return null;
 
-    return BlogPost(
-      title: map['title'],
-      publishedDate: map['published_date'].toDate(),
-      body: map['body'],
-    );
+    if (map != null) {
+      return BlogPost(
+        title: map['title'],
+        publishedDate: map['published_date'].toDate(),
+        body: map['body'],
+        id: doc.id,
+      );
+    } else {
+      throw Exception('Document does not exist on the database');
+    }
   }
-
-  final timeStemp = Timestamp.fromDate(DateTime.now()).toDate();
 
   Map<String, dynamic> toMap() {
     return {

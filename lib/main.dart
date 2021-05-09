@@ -35,18 +35,17 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
-        FutureProvider<List<BlogPost>>(
+        StreamProvider<List<BlogPost>>(
           create: (context) => blogPosts(),
           initialData: [],
         ),
-        Provider<List<BlogPost>>(create: (context) => _blogPosts),
         Provider<User>(
           create: (context) => User(
             name: 'Flutter Dev',
             profilePicture:
                 'https://thumbs.dreamstime.com/b/panda-avatar-illustration-45383457.jpg',
           ),
-        )
+        ),
       ],
       child: MaterialApp(
         title: 'Flutter Dev Blog',
@@ -57,23 +56,22 @@ class MyApp extends StatelessWidget {
   }
 }
 
-final _blogPosts = [
-  BlogPost(
-    title: 'What is multi-provider?',
-    publishedDate: DateTime(2020, 1, 2),
-    body:
-        'A wrapper around Inherited Widget to make them easier to use and more reusable.',
-  ),
-  BlogPost(
-    title: 'What is provider?',
-    publishedDate: DateTime(2020, 2, 3),
-    body:
-        'A provider that merges multiple providers into a single linear widget tree. It is used to improve readability and reduce boilerplate code of having to nest multiple layers of providers.',
-  ),
-];
-
-Future<List<BlogPost>> blogPosts() {
-  return FirebaseFirestore.instance.collection('blogs').get().then((query) {
-    return query.docs.map((doc) => BlogPost.fromDocument(doc)).toList();
+Stream<List<BlogPost>> blogPosts() {
+  return FirebaseFirestore.instance
+      .collection('blogs')
+      .snapshots()
+      .map((snapshot) {
+    return snapshot.docs.map((doc) {
+      if (doc.exists) {
+        return BlogPost.fromDocument(doc);
+      } else {
+        throw Exception('Document does not exist on the database');
+      }
+    }).toList()
+      ..sort((first, last) {
+        final firstDate = first.publishedDate;
+        final lastDate = last.publishedDate;
+        return -firstDate.compareTo(lastDate);
+      });
   });
 }
