@@ -2,6 +2,8 @@ import 'package:blog_web_app/blog_post.dart';
 import 'package:blog_web_app/home_page.dart';
 import 'package:blog_web_app/user.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -35,12 +37,17 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
+        StreamProvider<bool>(
+            create: (context) => FirebaseAuth.instance
+                .authStateChanges()
+                .map((user) => user != null),
+            initialData: false),
         StreamProvider<List<BlogPost>>(
           create: (context) => blogPosts(),
           initialData: [],
         ),
-        Provider<User>(
-          create: (context) => User(
+        Provider<BlogUser>(
+          create: (context) => BlogUser(
             name: 'Flutter Dev',
             profilePicture:
                 'https://thumbs.dreamstime.com/b/panda-avatar-illustration-45383457.jpg',
@@ -48,6 +55,7 @@ class MyApp extends StatelessWidget {
         ),
       ],
       child: MaterialApp(
+        debugShowCheckedModeBanner: false,
         title: 'Flutter Dev Blog',
         theme: theme,
         home: HomePage(),

@@ -11,7 +11,7 @@ class BlogPage extends StatelessWidget {
   const BlogPage({Key? key, required this.blogPost}) : super(key: key);
   @override
   Widget build(BuildContext context) {
-    final user = context.watch<User>();
+    final user = context.watch<BlogUser>();
     return BlogScaffold(
       children: [
         ConstrainedCenter(
